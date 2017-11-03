@@ -1,21 +1,15 @@
-import discord
-import asyncio
-import random
-import configparser
-import youtube_dl
-from imgurpython import ImgurClient
+import discord #the discord.py library
+import asyncio #required to run async methods
+import random #rng
+import configparser #pulls credentials from auth.ini
+import youtube_dl #music
+import images #image module
 
 config = configparser.ConfigParser()
 config.read('auth.ini')
-client_id = config.get('credentials', 'client_id')
-client_secret = config.get('credentials', 'client_secret')
 token = config.get('credentials', 'TOKEN')
 
-client = ImgurClient(client_id, client_secret)
-
 bot = discord.Client()
-
-
 
 @bot.event #startup
 async def on_ready():
@@ -26,6 +20,9 @@ async def on_ready():
 
 @bot.event #commands
 async def on_message(message):
+#chat log
+    if message:
+        print(message.channel.name + ': ' + message.author.name + ': ' + message.content)
 
 #help command
     if message.content.lower().startswith('!help'):
@@ -38,25 +35,16 @@ async def on_message(message):
 # ----------------------- IMAGE COMMANDS ------------------------------
 #Shows the top viewed image on the imgur frontpage
     elif message.content.lower().startswith('!top'):
-        items = client.gallery()
-        max_item = None
-        max_views = 0
-        for item in items:
-            if item.views > max_views:
-                max_item = item
-                max_views = item.views
-        await bot.send_message(message.channel, 'Right now the most viewed image on the imgur frontpage(' + str(max_views) + ' views) is: ' + max_item.link)
-
+        await bot.send_message(message.channel, 'Right now the most viewed image on the imgur frontpage is: ' + images.topCommand().link)
 
 #Shows a random image with the tag you mentioned
     elif message.content.lower().startswith('!img'):
         tag = message.content[5:]
-        items = client.gallery_search(tag)
-        if not items:
+        result = images.imgCommand(tag)
+        if not result:
             await bot.send_message(message.channel, 'No images found for that tag :frowning:')
         else:
-            resultimg = random.choice(items)
-            await bot.send_message(message.channel, resultimg.link)
+            await bot.send_message(message.channel, result.link)
 
 #---------------------------------- MUSIC COMMANDS ---------------------------------
 #Lets the bot leave voice
